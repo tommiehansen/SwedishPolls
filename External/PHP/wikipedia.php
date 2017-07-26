@@ -10,27 +10,30 @@ require 'core/helpers.php';
 require 'core/class.wikipedia.php';
 require 'core/class.cli.colors.php';
 
+
 # load classes
 $wiki = new Polls\Wikipedia;
 $color = new Cli\Colors;
+
 
 # cli or not
 isset($argv) ? $isCli = true : $isCli = false;
 $isCli ? system('clear') : ''; // clear terminal
 
+
 # setup database
 $table = 'polls';
-$dbName = 'wikipedia.sqlite';
+$dbName = 'Wikipedia.sqlite';
 $db = DATA_DIR . $dbName;
 $wiki->createDatabase($db, $table); // returns db handle @ $wiki->db for later use
 
 
 # get data
-$isCli ? $color->header('Fetching and parsing data...') : '';
+$isCli ? $color->header('Fetching and parsing data') : '';
+
 $file = $config->cache_dir . 'wiki.cache';
 $url = "https://en.wikipedia.org/w/api.php?action=parse&format=json&page=Opinion_polling_for_the_Swedish_general_election,_2018&section=3";
 $data = curl_cache($url, $file, $config->cache );
-
 
 
 # parse
@@ -44,44 +47,28 @@ $isCli ? $color->done() : '';
 
 
 # SQLite insert
-#$wiki->writeSQLite($arr);
+$isCli ? $color->header("Writing to $db") : '';
 
-
-
-
-/* database operations */
-$isCli ? $color->header("Writing to '". DATA_DIR ."$dbName'") : '';
-
-$fields = $wiki->fields;
-
-// create insert string
-$inserts = "INSERT OR IGNORE INTO $table(";
-foreach( $fields as $field => $val ){ $inserts .= "`$field`,"; }
-$inserts .= ') VALUES (';
-foreach( $fields as $field ){ $inserts .= "?,"; }
-$inserts .= ');';
-$inserts = str_replace(',)',')', $inserts);
-
-
-// insert to db
-$db = $wiki->db;
-$db->beginTransaction();
-	foreach($arr as $key => $val ){
-		$sql = $db->prepare($inserts);
-		$sql->execute($val);
-	}
-
-	$db->exec("VACUUM");
-$db->commit();
-
+$wiki->writeSQLite($arr, $table);
 
 $isCli ? $color->done() : '';
 
 
 
 
-/* create csv */
-$selectFields = $fields;
+
+
+
+
+/*
+	Create CSV
+	TODO: make this a general func, some sort of db_data > csv
+*/
+$csvFile = DATA_DIR . 'Wikipedia.csv';
+
+$isCli ? $color->header("Writing to $csvFile") : '';
+
+$selectFields = $wiki->fields;
 unset($selectFields['id']);
 $str = '';
 foreach($selectFields as $key => $val ){
@@ -94,6 +81,7 @@ $sql = "
 	ORDER BY collectPeriodTo DESC, Company DESC
 ";
 
+$db = $wiki->db;
 $data = $db->query($sql);
 $data = $data->fetchAll(PDO::FETCH_ASSOC);
 
@@ -111,8 +99,6 @@ $headers = str_replace('id,', '', $headers); // rm id
 // rm id's
 foreach($data as $key => $val ){
 	unset($data[$key]['id']);
-	
-	#prp($val);
 }
 
 // create the CSV
@@ -122,9 +108,34 @@ $arrCSV = arrCSV($data);
 $arrCSV = $headers . PHP_EOL . $arrCSV;
 
 // write
-file_put_contents(DATA_DIR . 'Wikipedia.csv', $arrCSV);
+
+file_put_contents($csvFile, $arrCSV);
+
+
+$isCli ? $color->done() : '';
+echo "\n";
+
+
 
 
 if( !$isCli ){
-	echo 'Things written.';
+	$dbSrc = DATA_DIR . $dbName;
+	echo "
+		<style>* { font-family: monospace, monospace; line-height:1.5; } body { padding: 2%; } h3 { margin:0 0 .2rem; } table,td {border:0;border-spacing:0}</style>
+	";
+	$html = "
+		<h3>Stuff written</h3>
+		<table>
+			<tr>
+				<td>SQLite
+				<td>$dbSrc
+			</tr>
+			<tr>
+				<td>CSV
+				<td>$csvFile
+			</tr>
+		</table>
+	";
+	echo $html;
+
 }

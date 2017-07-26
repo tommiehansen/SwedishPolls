@@ -256,4 +256,39 @@ class Wikipedia {
 		
 	} // sort()
 	
+	
+
+	/**
+	 *  @brief Write Wikipedia data to SQLite db
+	 *  
+	 *  @param [array] $arr Array with parsed Wikipedia data
+	 *  @param [in] $table table name
+	 */
+	public function writeSQLite( $arr, $table ){
+		
+		// fetch fields
+		$fields = $this->fields;
+
+		// create insert string
+		$inserts = "INSERT OR IGNORE INTO $table(";
+		foreach( $fields as $field => $val ){ $inserts .= "`$field`,"; }
+		$inserts .= ') VALUES (';
+		foreach( $fields as $field ){ $inserts .= "?,"; }
+		$inserts .= ');';
+		$inserts = str_replace(',)',')', $inserts);
+
+		// insert db
+		$db = $this->db;
+		$db->beginTransaction();
+		
+			foreach($arr as $key => $val ){
+				$sql = $db->prepare($inserts);
+				$sql->execute($val);
+			}
+
+			$db->exec("VACUUM");
+		$db->commit();
+
+	}
+	
 } // class Wikipedia

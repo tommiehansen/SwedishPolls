@@ -87,7 +87,7 @@
 
 		// small quick functions
 		public function done(){
-			echo $this->out("Done \n\n", "light_magenta");
+			echo $this->out("Done \n", "light_magenta");
 		}
 
 		public function header($str, $color = 'white'){

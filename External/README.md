@@ -1,7 +1,7 @@
 External data
 ========================================================
 
-FIXME: This is data that isn't edited by humans but rather a collection of classes that fetches data and outputs to .csv and .sqlite.
+This is data that isn't edited by humans but rather a collection of classes that fetches data and outputs to .csv and .sqlite.
 
 
 ### Data description

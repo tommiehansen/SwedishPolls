@@ -6,9 +6,9 @@ This is data that isn't edited by humans but rather is a collection of classes t
 ---
 
 #### Difference to /Data/Polls.csv
-The data will follow Polls.csv where data is available from 'external source' and add 'NA' to the CSV-files where data does not exist or can not be calculated in some fashion.
+The data will follow Polls.csv where data is available from 'external source' and add 'NA' to the CSV-files where data does not exist or can not be calculated in some fashion. Merged data will also follow this pattern.
 
-Merged data will also follow this pattern.
+All data is always sorted on A: `collectPeriodTo DESC` and B: `Company DESC`.
 
 ---
 

@@ -60,7 +60,7 @@ $isCli ? $color->header('Fetching Polls.csv') : '';
 
 $url = 'https://raw.githubusercontent.com/MansMeg/SwedishPolls/master/Data/Polls.csv';
 $file = $config->cache_dir . 'polls.cache';
-$data = curl_cache($url, 'cache/polls.csv', $config->cache);
+$data = curl_cache($url, $file, $config->cache);
 
 $isCli ? $color->done() : '';
 $isCli ? $color->header("Writing to $dbSrc") : '';

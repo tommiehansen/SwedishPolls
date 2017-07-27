@@ -84,6 +84,10 @@ class Wikipedia {
 			$db->exec($sql);
 			
 			$db->exec("DELETE FROM $table"); // clear table
+			$db->exec("PRAGMA synchronous=OFF");
+			$db->exec('PRAGMA journal_mode=MEMORY');
+			$db->exec('PRAGMA temp_store=MEMORY');
+			$db->exec('PRAGMA count_changes=OFF');
 			$db->exec("VACUUM");
 	
 		$db->commit();

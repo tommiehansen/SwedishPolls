@@ -5,6 +5,7 @@ class Wikipedia {
 	
 	public $db; // db-handle
 	public $fields;
+	public $pollFields;
 	
 	function __construct(){
 		
@@ -28,6 +29,28 @@ class Wikipedia {
 			'OTH'  => 'NUMERIC',
 		];
 		
+		$this->pollFields = [
+			'id' => 'TEXT',
+			'PublYearMonth' => 'TEXT',
+			'Company' => 'TEXT',
+			'M' => 'NUMERIC',
+			'L' => 'NUMERIC',
+			'C' => 'NUMERIC',
+			'KD' => 'NUMERIC',
+			'S' => 'NUMERIC',
+			'V' => 'NUMERIC',
+			'MP' => 'NUMERIC',
+			'SD' => 'NUMERIC',
+			'FI' => 'NUMERIC',
+			'Uncertain' => 'NUMERIC',
+			'n' => 'NUMERIC',
+			'PublDate' => 'TEXT',
+			'collectPeriodFrom' => 'TEXT',
+			'collectPeriodTo' => 'TEXT',
+			'approxPeriod' => 'TEXT',
+			'house' => 'TEXT',
+		];
+		
 	}
 	
 	
@@ -38,14 +61,15 @@ class Wikipedia {
 	 *  @param [str] $table Table name
 	 *  @return Returns $db handle for further use
 	 */
-	public function createDatabase($db, $table){
+	public function createDatabase($db, $table, $useField = false ){
+		
+		if( !$useField ) { $fields = $this->fields; }
+		else { $fields = $useField;  }
 
 		$dir = "sqlite:" . $db;
 		$db	= new \PDO($dir) or die("Error @ db");
 		
 		$db->beginTransaction();
-
-			$fields = $this->fields;
 
 			// create all fields
 			$sql = "CREATE TABLE IF NOT EXISTS $table (";

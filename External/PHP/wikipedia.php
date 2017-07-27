@@ -31,7 +31,7 @@ $wiki->createDatabase($db, $table); // returns db handle @ $wiki->db for later u
 # get data
 $isCli ? $color->header('Fetching and parsing data') : '';
 
-$file = $config->cache_dir . 'wiki.cache';
+$file = $config->cache_dir . 'wikipedia.cache';
 $url = "https://en.wikipedia.org/w/api.php?action=parse&format=json&page=Opinion_polling_for_the_Swedish_general_election,_2018&section=3";
 $data = curl_cache($url, $file, $config->cache );
 

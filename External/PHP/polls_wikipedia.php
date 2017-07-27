@@ -227,6 +227,7 @@ foreach($new as $k => $a ){
 
 // commit all
 $db->commit();
+$db->exec("VACUUM;");
 
 
 

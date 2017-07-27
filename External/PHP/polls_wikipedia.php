@@ -296,3 +296,25 @@ file_put_contents( $csvFile, $csv );
 
 $isCli ? $color->done() : '';
 echo "\n";
+
+
+if( !$isCli ){
+	echo "
+		<style>* { font-family: monospace, monospace; line-height:1.5; } body { padding: 2%; } h3 { margin:0 0 .2rem; } table,td {border:0;border-spacing:0}</style>
+	";
+	$html = "
+		<h3>Stuff written</h3>
+		<table>
+			<tr>
+				<td>SQLite
+				<td>$dbSrc
+			</tr>
+			<tr>
+				<td>CSV
+				<td>$csvFile
+			</tr>
+		</table>
+	";
+	echo $html;
+
+}

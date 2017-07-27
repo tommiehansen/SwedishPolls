@@ -309,9 +309,9 @@ class Wikipedia {
 				$sql = $db->prepare($inserts);
 				$sql->execute($val);
 			}
-
-			$db->exec("VACUUM");
+			
 		$db->commit();
+		$db->exec("VACUUM;");
 
 	}
 	

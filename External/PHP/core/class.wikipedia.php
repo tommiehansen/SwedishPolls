@@ -70,8 +70,15 @@ class Wikipedia {
 		$db	= new \PDO($dir) or die("Error @ db");
 		
 		$db->beginTransaction();
+		
+			# SQLite settings
+			$db->exec("PRAGMA synchronous=OFF");
+			$db->exec('PRAGMA journal_mode=MEMORY');
+			$db->exec('PRAGMA temp_store=MEMORY');
+			$db->exec('PRAGMA count_changes=OFF');
+			#$db->exec("DELETE FROM $table"); // clear table (temp)
 
-			// create all fields
+			# create all fields
 			$sql = "CREATE TABLE IF NOT EXISTS $table (";
 
 			foreach( $fields as $key => $val ){	
@@ -82,12 +89,6 @@ class Wikipedia {
 			$sql .= ")"; 
 
 			$db->exec($sql);
-			
-			$db->exec("DELETE FROM $table"); // clear table
-			$db->exec("PRAGMA synchronous=OFF");
-			$db->exec('PRAGMA journal_mode=MEMORY');
-			$db->exec('PRAGMA temp_store=MEMORY');
-			$db->exec('PRAGMA count_changes=OFF');
 			$db->exec("VACUUM");
 	
 		$db->commit();
@@ -126,12 +127,7 @@ class Wikipedia {
 			
 			// checks
 			if( !isset($cols[1]) || !isset($cols[0])) continue; // skip bad data
-			if( $i > 0 && $i < 10 ){
-				if( $cols[1]->nodeValue === 'General Election' ) continue; // skip 'General Election', but not last one
-			}
-			
-			# check if general election since it has special date data that differ from everything else
-			$cols[1]->nodeValue === 'General Election'? $isGeneral = true : $isGeneral = false;
+			if (strpos($cols[1]->nodeValue, 'General') !== false) continue; // skip 'General Election'
 			
 			// loop columns
 			for ($j = 0; $j < $jlen; $j++) {
@@ -161,7 +157,7 @@ class Wikipedia {
 				
 				# fix poor UTF-8 encoding causing '?'
 				# and normalize dates
-				if( $j == 0 && !$isGeneral ) {
+				if( $j == 0  ) {
 					
 					$val = str_replace('?','-', $val);
 					$arr[$i]['Date'] = $val;
@@ -210,17 +206,7 @@ class Wikipedia {
 					}			
 					
 					
-				} // $j == 0 && !$isGeneral
-				
-				
-				if( $j == 0 && $isGeneral ){
-					
-					// normalize format for 'General Election'
-					$date = $val;
-					$fromYMD = date('Y-m-d', strtotime($date));
-					$toYMD = date('Y-m-d', strtotime($date));
-					
-				}
+				} // $j == 0
 				
 				// set collection periods
 				$arr[$i]['collectPeriodFrom'] = $fromYMD;
@@ -294,28 +280,52 @@ class Wikipedia {
 	 */
 	public function writeSQLite( $arr, $table ){
 		
-		// fetch fields
-		$fields = $this->fields;
-
-		// create insert string
-		$inserts = "INSERT OR IGNORE INTO $table(";
-		foreach( $fields as $field => $val ){ $inserts .= "`$field`,"; }
-		$inserts .= ') VALUES (';
-		foreach( $fields as $field ){ $inserts .= "?,"; }
-		$inserts .= ');';
-		$inserts = str_replace(',)',')', $inserts);
-
-		// insert db
+		# fetch db handle
 		$db = $this->db;
-		$db->beginTransaction();
 		
-			foreach($arr as $key => $val ){
-				$sql = $db->prepare($inserts);
-				$sql->execute($val);
-			}
+		/* Check if data is new or old */
+		
+		# get first row from database
+		# note, data must already exist for this to work (obviously)
+		$res = $db->query("SELECT * FROM $table LIMIT 1");		
+		$res = $res->fetchAll(\PDO::FETCH_NUM);
+		
+		# diff?
+		if( isset($res[0]) ){ 
+			$diff = array_diff($res[0], $arr[0]);
+		}
+		else {
+			$diff = true;
+		}
+		
+		if( $diff ){
+		
+			// fetch fields
+			$fields = $this->fields;
+
+			// create insert string
+			$inserts = "INSERT OR IGNORE INTO $table(";
+			foreach( $fields as $field => $val ){ $inserts .= "`$field`,"; }
+			$inserts .= ') VALUES (';
+			foreach( $fields as $field ){ $inserts .= "?,"; }
+			$inserts .= ');';
+			$inserts = str_replace(',)',')', $inserts);
+
+			// insert db
+			$db->beginTransaction();
 			
-		$db->commit();
-		$db->exec("VACUUM;");
+				foreach($arr as $key => $val ){
+					$sql = $db->prepare($inserts);
+					$sql->execute($val);
+				}
+				
+			$db->commit();
+			$db->exec("VACUUM;");
+		
+		}
+		
+		# return true/false depending on if there's a difference or not
+		return $diff;
 
 	}
 	

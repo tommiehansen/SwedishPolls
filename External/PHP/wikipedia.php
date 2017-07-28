@@ -47,16 +47,25 @@ $isCli ? $color->done() : '';
 
 
 # SQLite insert
-$isCli ? $color->header("Writing to $db") : '';
 
-$wiki->writeSQLite($arr, $table);
 
-$isCli ? $color->done() : '';
+$hasChanges = $wiki->writeSQLite($arr, $table); // write and perform check if there's new data
 
 
 
 
+// no change from previous data, don't write if nothing new
+if( !$hasChanges ) {
+	
+	$isCli ? $color->header("No new data to write, quitting...\n") : '';
+	
+	exit();
+}
 
+else {
+	$isCli ? $color->header("Writing to $db") : '';
+	$isCli ? $color->done() : '';
+}
 
 
 
@@ -76,9 +85,10 @@ foreach($selectFields as $key => $val ){
 }
 $selectFields = rtrim($str, ',');
 
+$order = $config->order;
 $sql = "
 	SELECT $selectFields FROM $table
-	ORDER BY collectPeriodTo DESC, Company DESC
+	ORDER BY $order
 ";
 
 $db = $wiki->db;

@@ -10,10 +10,10 @@ define('DATA_DIR', '../Data/');
 # conf object
 $config = [
 
-	'cache' => '15 minutes', // false or ie '10 minutes', '1 hour', '1 month', '12 months' etc
+	'cache' => '999 years', // false or ie '10 minutes', '1 hour', '1 month', '12 months' etc
 	'cache_dir' => BASE_DIR . 'cache/',
 	'data_dir' => DATA_DIR,
-	'order' => 'collectPeriodTo DESC, Company DESC',
+	'order' => 'collectPeriodTo DESC, Company ASC',
 
 ];
 

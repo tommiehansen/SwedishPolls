@@ -2,6 +2,8 @@
 /**
  *  Merge data from Polls.csv <> Wikipedia
  *  Never touches old data *IF* it exists
+ *  TODO:
+ *  1. Actually merge the data if data from Polls.csv has missing data (ie Inizio > FI party)
  */
  
 require 'core/config.php'; // $config object
@@ -104,10 +106,21 @@ foreach($pollsArr as $key => $arr ){
 	$month < 10 ? $month = '0'. $month : '';
 	$arr[0] = $date[0] . '-' . $month;
 	
+	// check if collectPeriod(s) set, else use PublYearMonth + '-01'
+	if( $arr[15] === 'NA' ) {
+		$arr[15] = $arr[0] . '-01';
+		$arr[14] = $arr[15];
+	}
+	
+	// check if PublDate set, else use PublYearMonth + '-01'
+	if( $arr[13] == 'NA'){
+		$arr[13] = $arr[0] . '-01';
+	}
+	
 	// generate id + prepend to array
-	// NOTE: This can cause duplicate data entries; omit all Wikipedia-data later on that somehow clashes
-	$year = $date[0];
-	$id = $year . strtoupper(substr($arr[1], 0, 3)) . $arr[2] . $arr[3] . $arr[4] . $arr[5] . $arr[6] . $arr[7]; // <YEAR><Company:first 3 chars><M><L><C><KD><S><V>
+	$toDate = $arr[15]; // collectPeriodTo
+
+	$id = $toDate . strtoupper(substr($arr[1], 0, 3)); // <collectPeriodTo><Company:first 3 chars>
 	$id = str_replace('.','', $id);
 	$id = str_replace('-','', $id);
 	
@@ -182,10 +195,10 @@ foreach( $wikiArr as $key => $val ){
 	
 	// generate id 'compatible' with Polls.csv
 	// used later on for INSERT OR IGNORE query
+	
 	$cur = $wikiArr[$key];
-	$id = substr($cur[4], 0, 4); // year
+	$id = $cur['4'];
 	$id .= substr(strtoupper($cur[1]), 0, 3); // Company: 3 first chars
-	$id .= $cur[5] . $cur[6] . $cur[7] . $cur[8] . $cur[9] . $cur[10]; // M-L-C-KD-S-V values
 	$id = str_replace(['-','.'],['',''], $id);
 
 	$new[$key]['id'] = $id;

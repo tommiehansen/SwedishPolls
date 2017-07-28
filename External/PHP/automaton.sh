@@ -5,5 +5,5 @@
 # TODO: add a bounch of 'php thing.php'
 
 # --------------------------------------
-# run with nohup ./monitor.sh &
+# run with nohup ./automaton.sh &
 # --------------------------------------

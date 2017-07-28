@@ -54,6 +54,7 @@ $hasChanges = $wiki->writeSQLite($arr, $table); // write and perform check if th
 if( !$hasChanges ) {
 	
 	$isCli ? $color->header("No new data to write, quitting...\n") : '';
+	if( !$isCli ){ echo 'No new data to write, quitting...'; }
 	
 	exit();
 }

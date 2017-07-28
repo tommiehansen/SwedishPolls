@@ -76,7 +76,7 @@ class Wikipedia {
 			$db->exec('PRAGMA journal_mode=MEMORY');
 			$db->exec('PRAGMA temp_store=MEMORY');
 			$db->exec('PRAGMA count_changes=OFF');
-			#$db->exec("DELETE FROM $table"); // clear table (temp)
+			$db->exec("DELETE FROM $table"); // clear table (temp)
 
 			# create all fields
 			$sql = "CREATE TABLE IF NOT EXISTS $table (";
@@ -237,10 +237,10 @@ class Wikipedia {
 			
 			$cur = $arr[$i];
 			
-			// generate id
-			$from = substr($cur['collectPeriodFrom'],2);
-			$to = substr($cur['collectPeriodTo'],2);
-			$id = $to. $from . $cur['M'] . $cur['L'] . $cur['C'] . $cur['KD'];
+			// generate id : <collectPeriod><company: 3 first>
+			$dateTo = $cur['collectPeriodTo'];
+			$company = strtoupper(substr($cur['Company'], 0, 3));
+			$id = $dateTo . $company;
 			$id = str_replace(['-','.'],['',''], $id);
 			
 			$sort[$i][0] = $id;

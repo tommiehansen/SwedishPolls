@@ -1,7 +1,7 @@
 PHP-scripts
 ===
 
-Fetches data and saves to various locations.
+Scripts that Fetches data and saves to `../Data/`.
 
 #### Requires
 * Curl

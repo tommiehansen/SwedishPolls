@@ -47,11 +47,7 @@ $isCli ? $color->done() : '';
 
 
 # SQLite insert
-
-
 $hasChanges = $wiki->writeSQLite($arr, $table); // write and perform check if there's new data
-
-
 
 
 // no change from previous data, don't write if nothing new

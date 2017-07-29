@@ -13,7 +13,7 @@ $config = [
 	'cache' => '999 years', // false or ie '10 minutes', '1 hour', '1 month', '12 months' etc
 	'cache_dir' => BASE_DIR . 'cache/',
 	'data_dir' => DATA_DIR,
-	'order' => 'collectPeriodTo DESC, Company ASC',
+	'order' => 'collectPeriodTo DESC',
 
 ];
 

@@ -16,8 +16,7 @@ header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");
 
-prp( date('Y-m-d / G:i') );
-
+#prp( date('Y-m-d / G:i') );
 
 
 # setup stuff
@@ -26,8 +25,8 @@ $polls_src = $data_dir . 'Polls_Wikipedia.sqlite';
 #$wiki_src = $data_dir . 'Wikipedia.sqlite';
 $wiki_src = 'wiki.test.sqlite';
 
-$limit = 30;
-$company = 'YouGov';
+$limit = -1;
+$company = 'Inizio';
 
 
 $pollsDB = new PDO('sqlite:' . $polls_src) or die("Error @ db");
@@ -36,7 +35,7 @@ $wikiDB = new PDO('sqlite:' . $wiki_src) or die("Error @ db");
 # compare with pollsData
 $sql = "		
 	SELECT * from polls a
-	WHERE a.Company = '$company'
+	-- WHERE a.Company = '$company'
 	ORDER BY a.collectPeriodTo DESC, a.Company DESC
 	LIMIT $limit
 ";
@@ -45,14 +44,14 @@ $pollsData = $pollsData->fetchAll(PDO::FETCH_ASSOC);
 
 
 
-echo '<h3>Polls DB</h3>';
-sqlTable($pollsData);
+#echo '<h3>Polls DB</h3>';
+#sqlTable($pollsData);
 
 
 # compare with wikidata
 $sql = "		
 	SELECT * from polls a
-	WHERE a.Company = '$company'
+	-- WHERE a.Company = '$company'
 	ORDER BY a.collectPeriodTo DESC, a.Company DESC
 	LIMIT $limit
 ";
@@ -60,8 +59,8 @@ $wikiData = $wikiDB->query($sql);
 $wikiData = $wikiData->fetchAll(PDO::FETCH_ASSOC);
 
 
-echo '<h3>Wiki DB</h3>';
-sqlTable($wikiData);
+#echo '<h3>Wiki DB</h3>';
+#sqlTable($wikiData);
 
 
 
@@ -143,7 +142,7 @@ foreach( $wikiData as $i => $arr ){
 echo '<br>';
 prp( count($wikiData) . ' missing from Polls.csv, adding below...');
 
-# add missing to $pollsArr
+# add missing data values to $pollsArr (ie 'OTH')
 foreach( $wikiData as $i => $arr ){
 	
 	// add missing keys to wikiData with 'null' data
@@ -155,6 +154,9 @@ foreach( $wikiData as $i => $arr ){
 		}
 	}
 	
+	// use Company for key 'house'
+	$arr['house'] = $arr['Company'];
+	
 	// add to pollsArr
 	$pollsArr[] = $arr;
 	
@@ -163,15 +165,18 @@ foreach( $wikiData as $i => $arr ){
 
 /*
 	Remove *obvious* duplicates
-	Using values for Year + Company + M, L, C, KD, S
+	Using values for Year + Company + M, L, C, KD, S, V
+	
+	NOTE: Some duplicates will still occur due to
+	the fact that Polls.csv can have errors
 */
 
-# create key
+# create key for comparison
 foreach( $pollsArr as $i => $arr ){
 	
-	$company = strtoupper( substr($arr['Company'], 0, 3) );
-	$year = substr( $arr['collectPeriodTo'], 0, 4 );
-	$key = $year . $company . $arr['M'] . $arr['L'] . $arr['C'] . $arr['KD'] . $arr['S'];
+	$yearMonth = substr( $arr['collectPeriodTo'], 0, 7 );
+	$yearMonth = str_replace('-', '', $yearMonth);
+	$key = $yearMonth . $arr['M'] . $arr['L'] . $arr['C'] . $arr['KD'] . $arr['S'] . $arr['V'];
 	$key = str_replace('.', '', $key);
 	$pollsArr[$i]['key'] = $key;
 	
@@ -179,7 +184,6 @@ foreach( $pollsArr as $i => $arr ){
 
 # Remove dupes
 # note: since wikiData is added last in array, data from pollsData is used if there's a duplicate
-# This is preferrable since pollsData should have higher accuracy then wikiData
 function array_key_unique($arr, $key) {
     $uniquekeys = array();
     $output     = array();
@@ -198,6 +202,7 @@ $pollsArr = array_key_unique( $pollsArr, 'key' );
 # remove uneeded keys
 $rmKeys = [ 'key', 'Date' ];
 foreach( $pollsArr as $i => $arr ){
+	unset($pollsArr[$i]['Date']);
 	foreach( $rmKeys as $key ){
 		unset($pollsArr[$i][$key]);
 	}

@@ -90,7 +90,7 @@
 		foreach( $res as $key => $val ){
 		    echo "<tr>";
 		    foreach($head as $i=>$h){
-		        echo "<td>" . $val[$i] . "</td>";
+		        echo "<td title='$i'>" . $val[$i] . "</td>";
 		    }
 		    echo "</tr>";
 		}

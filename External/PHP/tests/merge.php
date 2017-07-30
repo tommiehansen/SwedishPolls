@@ -1,4 +1,4 @@
-<title># temp</title>
+<title># merge</title>
 <style>
 * { font-family: monospace; } .tbl td, .tbl th { text-align: left; }
 .tbl { width: 100%; border-collapse: collapse; margin-bottom: 2rem; } td,th { border: 1px solid #ddd; padding: 5px; } tr:hover td { background: #ffc; }
@@ -6,7 +6,9 @@ th { background: #ffd }
 </style>
 <?php
 /**
- *  Temp
+ *  MERGE
+ *  Goal is to merge data from Polls.csv >> Wikipedia
+ *  TODO: Add 'strict' and 'normal' rules for dupe-check
  */
  
 require '../core/config.php'; // $config object
@@ -22,8 +24,8 @@ header("Pragma: no-cache");
 # setup stuff
 $data_dir = '../' . DATA_DIR;
 $polls_src = $data_dir . 'Polls_Wikipedia.sqlite';
-#$wiki_src = $data_dir . 'Wikipedia.sqlite';
-$wiki_src = 'wiki.test.sqlite';
+$wiki_src = $data_dir . 'Wikipedia.sqlite';
+#$wiki_src = 'merge.test.sqlite';
 
 $limit = -1;
 $company = 'Inizio';
@@ -139,8 +141,10 @@ foreach( $wikiData as $i => $arr ){
 	
 }
 
-echo '<br>';
-prp( count($wikiData) . ' missing from Polls.csv, adding below...');
+if( count($wikiData) > 0 ){
+	echo '<br>';
+	echo '<h3>' . count($wikiData) . ' missing from Polls.csv, adding...</h3>';
+}
 
 # add missing data values to $pollsArr (ie 'OTH')
 foreach( $wikiData as $i => $arr ){
@@ -165,10 +169,11 @@ foreach( $wikiData as $i => $arr ){
 
 /*
 	Remove *obvious* duplicates
-	Using values for Year + Company + M, L, C, KD, S, V
+	Using values for Year + Month + M, L, C, KD, S, V
 	
 	NOTE: Some duplicates will still occur due to
 	the fact that Polls.csv can have errors
+	TODO: Add check for strict and loose
 */
 
 # create key for comparison
@@ -214,7 +219,7 @@ foreach( $pollsArr as $i => $arr ){
 usort($pollsArr, function($a, $b) {
 	$a = str_replace('-','', $a['collectPeriodTo']);
 	$b = str_replace('-','', $b['collectPeriodTo']);
-    return (int) $b - $a; // sort DESC
+    return $b - $a; // sort DESC
 });
 
 echo '<h3>Merged</h3>';

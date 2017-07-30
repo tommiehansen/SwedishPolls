@@ -26,6 +26,12 @@
 		
 	}
 	
+	// isCli
+	function isCli(){
+		isset($GLOBALS['argv']) ? $isCli = true : $isCli = false;
+		return $isCli;
+	}
+	
 	// pre
 	function pre( $str ){
 		echo $str . "\n";
@@ -78,7 +84,19 @@
 
 
 	# output table from query; requires PDO::FETCHASSOC from query result
-	function sqlTable($res, $class = 'tbl'){
+	function sqlTable($res, $class = 'tbl', $css = true ){
+		
+		if( $css ){
+			echo "
+			<style>
+			.$class { font-family: monospace; }
+			.$class td, .$class th { text-align: left; border: 1px solid #ddd; padding: 5px; }
+			.$class { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
+			.$class tr:hover td { background: #ffc; }
+			.$class th { background: #ffd }
+			</style>
+			";
+		}
 
 		$head = $res[0];
 		echo "<table class='$class' data-sortable><thead><tr>";

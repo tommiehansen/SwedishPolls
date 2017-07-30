@@ -1,23 +1,15 @@
-<title># temp</title>
-<style>
-* { font-family: monospace; } .tbl td, .tbl th { text-align: left; }
-.tbl { width: 100%; border-collapse: collapse; margin-bottom: 2rem; } td,th { border: 1px solid #ddd; padding: 5px; } tr:hover td { background: #ffc; }
-th { background: #ffd }
-</style>
 <?php
 /**
  *  Get Polls.csv + standardize format + add to database
- *  1. Apply fixes
- *  2. Add data to database
- *  3. Check if there was new data or not and write/don't write if
+ *  1. Get data
+ *  2. Apply fixes
+ *  3. Add data to database
+ *  4. Check if there was new data or not and write/don't write if
  */
  
 require '../core/config.php'; // $config object
 require '../core/helpers.php';
-
-header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-header("Cache-Control: post-check=0, pre-check=0", false);
-header("Pragma: no-cache");
+require 'class.common.php';
 
 
 # setup
@@ -29,10 +21,36 @@ $dir_append = '../'; # tmp for /test/ -folder
 $oldCheck = 50; // number of new-vs-old to check for if difference
 
 
-# get data
+# init common
+$common = new Polls\Common;
+
+
+# check if terminal
+$isCli = isCli();
+
+if( !$isCli ){
+	
+	header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+	header("Cache-Control: post-check=0, pre-check=0", false);
+	header("Pragma: no-cache");
+	echo "
+		<title># ". basename(__FILE__, '.php') ."</title>
+		<style>* { font-family: monospace; }</style>
+	";
+	
+}
+
+
+
+
+/*
+	GET DATA
+*/
+
+# get CSV
 $url = 'https://raw.githubusercontent.com/MansMeg/SwedishPolls/master/Data/Polls.csv';
 $file = $dir_append . $config->cache_dir . 'polls.cache';
-$data = curl_cache($url, $file, $config->cache);
+$data = curl_cache($url, $file, $config->cache); // get + cache
 
 
 # create array from CSV
@@ -49,7 +67,7 @@ file_exists($dbName) ? $hasOld = true : $hasOld = false;
 
 
 /*
-	Apply fixes
+	APPLY FIXES
 	1. Create data-friendly PublYearMonth ie 2017-Jul >> 2017-07
 	2. Create faux collectPeriodFrom and collectPeriodTo using PublYearMonth ie NA >> 2017-07-01
 	3. Convert all 'NA' to 'null' (for later SQLite insert)
@@ -116,7 +134,7 @@ $pollsArr = $pollsTemp;
 
 
 /*
-	Add to SQLite database
+	ADD TO SQLITE DATABASE
 */
 
 
@@ -142,42 +160,13 @@ $fields = [
 	'house' => 'TEXT',
 ];
 
-$db = "sqlite:" . $dbNameNew;
-$db	= new \PDO($db) or die("Error @ db");
 
-$db->beginTransaction();
-
-	# SQLite settings
-	$db->exec("PRAGMA synchronous=OFF");
-	$db->exec('PRAGMA journal_mode=MEMORY');
-	$db->exec('PRAGMA temp_store=MEMORY');
-	$db->exec('PRAGMA count_changes=OFF');
-	$db->exec("DELETE FROM $table"); // clear table (temp)
-
-	# create all fields
-	$sql = "CREATE TABLE IF NOT EXISTS $table (";
-
-	foreach( $fields as $key => $val ){	
-		$sql .= " $key $val, ";
-	}
-
-	$sql .= " PRIMARY KEY(id) "; // primary
-	$sql .= ")"; 
-
-	$db->exec($sql);
-
-$db->commit();
+# create database (if not exist)
+$db = $common->createDatabase( $dbNameNew, $table, $fields ); // returns db-handle for later use
 
 
-
-
-# generate inserts
-$inserts = "INSERT OR IGNORE INTO $table(";
-foreach( $fields as $field => $val ){ $inserts .= "`$field`,"; }
-$inserts .= ') VALUES (';
-foreach( $fields as $field ){ $inserts .= "?,"; }
-$inserts .= ');';
-$inserts = str_replace(',)',')', $inserts);
+# generate inserts for prepped statements
+$inserts = $common->generateInserts( $table, $fields );
 
 
 # loop pollsArr and apply inserts
@@ -189,7 +178,7 @@ foreach($pollsArr as $key => $arr ){
 	
 }
 $db->commit();
-$db->exec("VACUUM;");
+$db->exec("VACUUM");
 
 
 
@@ -197,8 +186,9 @@ $db->exec("VACUUM;");
 
 
 /*
-	Check if there was new data
-	Reason for this is that we do not want to update files if there is no new data...
+	CHECK IF THERE WAS NEW DATA
+	Reason for this is that we do not want to commit files if there is no new data...
+	Any change to any database is always considered 'changed'
 */
 
 
@@ -228,13 +218,18 @@ if( $hasOld ){
 	
 	// no difference
 	if( !$hasDiff ){
-		echo 'No difference from previous, no new data added.';
+		echo "No difference from previous, no new data added.\n";
 		unlink( $dbNameNew ); // remove the new database
 	}
 	else {
-		echo 'New data differs from previous, new data was written...';
+		echo "New data differs from previous, new data was written...\n";
 		unlink( $dbName ); // remove primary
 		rename( $dbNameNew, $dbName ); // use new as primary
 	}
 	
+}
+// no old data, simply rename db file
+else {
+	echo "Data was written.\n";
+	rename( $dbNameNew, $dbName );
 }

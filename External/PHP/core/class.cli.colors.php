@@ -13,7 +13,7 @@
 				'white'			=> '1;37',
 				'black'			=> '0;30',
 				'dark_gray' 	=> '1;30',
-				'red'			=> '0;31',
+				'red'			=> '0;91',
 				'light_red'		=> '1;31',
 				'green'			=> '0;32',
 				'light_green'	=> '1;32',
@@ -95,6 +95,20 @@
 			echo $this->out("$str\n", "$color");
 		}
 		
+		// large header
+		public function large_header($header, $subheader, $color = 'white', $color2 = 'light_magenta'){
+			$line = $this->line('=', 60);
+			echo "\n\n";
+			echo $this->out($line, $color2);
+			echo "\n\n";
+			echo $this->out($header, $color);
+			echo "\n";
+			echo $this->out($subheader, 'gray');
+			echo "\n\n";
+			echo $this->out($line, $color2);
+			echo "\n\n";
+		}
+		
 		public function error($str, $color = ''){
 			$out = "\n";
 			$out .= $this->out("ERROR", 'white', 'red');
@@ -157,6 +171,13 @@
 				if( !isset($range[$key+1]) ){ echo "\n\n"; }
 			}
 
+		}
+		
+		# generate a line
+		public function line( $str = '-', $num = 20 ){
+			$line = '';
+			while( $num -- ){ $line .= $str; }
+			return $line;
 		}
 
 	}

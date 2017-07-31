@@ -14,6 +14,10 @@ require 'core/class.cli.colors.php';
 $colors = new Cli\Colors;
 
 
+# output large header
+$colors->large_header(basename(__FILE__), "Get Polls.csv, apply fixes and add to database");
+
+
 # setup
 $db = 'Polls.sqlite';
 $dbName = $db;
@@ -52,8 +56,10 @@ if( !$isCli ){
 	GET DATA
 */
 
+
 # get CSV
 $url = 'https://raw.githubusercontent.com/MansMeg/SwedishPolls/master/Data/Polls.csv';
+$colors->header("Fetching '$url'");
 $file = $config->cache_dir . 'polls.cache';
 $data = curl_cache($url, $file, $config->cache); // get + cache
 
@@ -62,6 +68,8 @@ $data = curl_cache($url, $file, $config->cache); // get + cache
 $pollsArr = csvArr($data);
 $pollsHeader = $pollsArr[0]; // save header for later use
 unset($pollsArr[0]); // remove header
+
+$colors->done();
 
 
 
@@ -74,6 +82,8 @@ unset($pollsArr[0]); // remove header
 	3. Convert all 'NA' to 'null' (for later SQLite insert)
 	4. Generate ID
 */
+
+$colors->header("Applying fixes");
 
 $months = ["jan", "feb", "mar", "apr", "maj", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
 
@@ -131,12 +141,17 @@ foreach( $pollsArr as $i => $arr ){
 $pollsArr = $pollsTemp;
 
 
+$colors->done();
+
+
 
 
 
 /*
 	ADD TO SQLITE DATABASE
 */
+
+$colors->header("Writing to temporary database $dbNameNew");
 
 
 $fields = [
@@ -181,6 +196,8 @@ foreach($pollsArr as $key => $arr ){
 $db->commit();
 $db->exec("VACUUM");
 
+$colors->done();
+
 
 
 
@@ -192,12 +209,17 @@ $db->exec("VACUUM");
 	Any change to any database is always considered 'changed'
 */
 
+$colors->header("Comparing $dbNameNew <> $dbName");
+
 
 if( $hasOld ){
 	
 	$newDB = $db;
 	$oldDB = new \PDO('sqlite:' . DATA_DIR . $dbName) or die("Error @ db");
-	$sql = "SELECT * FROM $table LIMIT $oldCheck";
+	$sql = "SELECT * FROM $table";
+	$order = $config->order;
+	$sql .= " ORDER BY $order";
+	$sql .= " LIMIT $oldCheck";
 	
 	$newData = $newDB
 	->query($sql)
@@ -219,18 +241,29 @@ if( $hasOld ){
 	
 	// no difference
 	if( !$hasDiff ){
-		$colors->row("Polls: No difference from previous, no new data added.\n");
+		$txt = "First $oldCheck entries does not differ, no new data added.";
+		echo $colors->out("$txt \n", 'yellow');
+		echo $colors->out("> TIP: You can force new data by removing file '". DATA_DIR ."$dbName' \n");
 		unlink( DATA_DIR . $dbNameNew ); // remove the new database
+		echo $colors->out("Removed temporary $dbNameNew \n");
+		$colors->done();
 	}
 	else {
-		$colors->row("Polls: New data differs from previous, new data was written...\n");
+		echo $colors->out("New data differs from previous, new data was written.\n");
 		unlink( DATA_DIR . $dbName ); // remove primary
 		rename( DATA_DIR . $dbNameNew, DATA_DIR . $dbName ); // use new as primary
+		echo $colors->out("Replaced $dbName with $dbNameNew \n");
+		$colors->done();
 	}
 	
 }
 // no old data, simply rename db file
 else {
-	$colors->row("Polls: Data was written.");
+	echo $colors->out("No old database, creating and writing. \n");
+	echo $colors->out("Data written to '". DATA_DIR ."$dbName' \n");
 	rename( DATA_DIR . $dbNameNew, DATA_DIR . $dbName );
+	$colors->done();
 }
+
+
+echo "\n";

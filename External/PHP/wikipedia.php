@@ -15,6 +15,10 @@ require 'core/class.cli.colors.php';
 $colors = new Cli\Colors;
 
 
+# output large header
+$colors->large_header(basename(__FILE__), "Get Data using Wikipedia API, parse and add to database");
+
+
 # setup
 $db = 'Wikipedia.sqlite';
 $dbName = $db;
@@ -77,13 +81,20 @@ if( !$isCli ){
 # get JSON
 $url_base = "https://en.wikipedia.org/w/api.php?action=parse&format=json&page=";
 $page = "Opinion_polling_for_the_Swedish_general_election,_2014&section=2";
+$colors->header("Fetching '$page'");
 $file = $config->cache_dir . 'wikipedia.2010-2014.cache';
 $data = curl_cache($url_base.$page, $file, $config->cache );
+$colors->done();
 
 # get JSON #2
 $page = "Opinion_polling_for_the_Swedish_general_election,_2018&section=3";
+$colors->header("Fetching '$page'");
 $file = $config->cache_dir . 'wikipedia.2014-2018.cache';
 $data2 = curl_cache($url_base.$page, $file, $config->cache );
+$colors->done();
+
+
+
 
 
 /*
@@ -91,6 +102,8 @@ $data2 = curl_cache($url_base.$page, $file, $config->cache );
 	Uses DOM-document since Wikipedia API
 	returns an object with HTML inside ...
 */
+
+$colors->header('Parsing and applying fixes');
 
 $data = json_decode($data, true);
 $data = $data['parse']['text']['*'];
@@ -269,12 +282,17 @@ foreach( $arr as $i => $val ){
 # replace $arr array
 $arr = $sort;
 
+$colors->done();
+
+
 
 
 
 /*
 	ADD TO SQLITE DATABASE
 */
+
+$colors->header("Writing to temporary database $dbNameNew");
 
 
 # convert keys in array to numbers
@@ -301,6 +319,9 @@ $db->commit();
 $db->exec("VACUUM");
 
 
+$colors->done();
+
+
 
 
 
@@ -310,12 +331,17 @@ $db->exec("VACUUM");
 	Any change to any database is always considered 'changed'
 */
 
+$colors->header("Comparing $dbNameNew <> $dbName");
+
 
 if( $hasOld ){
 	
 	$newDB = $db;
 	$oldDB = new \PDO('sqlite:' . DATA_DIR . $dbName) or die("Error @ db");
-	$sql = "SELECT * FROM $table LIMIT $oldCheck";
+	$sql = "SELECT * FROM $table";
+	$order = $config->order;
+	$sql .= " ORDER BY $order";
+	$sql .= " LIMIT $oldCheck";
 	
 	$newData = $newDB
 	->query($sql)
@@ -337,19 +363,29 @@ if( $hasOld ){
 	
 	// no difference
 	if( !$hasDiff ){
-		$colors->row("Wikipedia: No difference from previous, no new data added.\n");
+		$txt = "First $oldCheck entries does not differ, no new data added.";
+		echo $colors->out("$txt \n", 'yellow');
+		echo $colors->out("> TIP: Force new data by removing file '". DATA_DIR ."$dbName' \n");
 		unlink( DATA_DIR . $dbNameNew ); // remove the new database
+		echo $colors->out("Removed temporary '". DATA_DIR . "$dbNameNew' \n");
+		$colors->done();
 	}
 	else {
-		$colors->row("Wikipedia: New data differs from previous, new data was written...\n");
+		echo $colors->out("New data differs from previous, new data was written.\n");
 		unlink( DATA_DIR . $dbName ); // remove primary
 		rename( DATA_DIR . $dbNameNew, DATA_DIR . $dbName ); // use new as primary
+		echo $colors->out("Replaced $dbName with $dbNameNew in '". DATA_DIR ."' \n");
+		$colors->done();
 	}
 	
 }
 
 // no old data, simply rename db file
 else {
-	$colors->row("Wikipedia: Data was written.\n");
+	echo $colors->out("No old database, creating and writing. \n");
+	echo $colors->out("Data written to '". DATA_DIR ."$dbName' \n");
 	rename( DATA_DIR . $dbNameNew, DATA_DIR . $dbName );
+	$colors->done();
 }
+
+echo "\n";

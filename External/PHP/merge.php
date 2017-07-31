@@ -30,46 +30,106 @@ $colors = new Cli\Colors;
 $common = new Polls\Common;
 
 
+# output large header
+$sub_text = "Merge data from Polls.csv <> Wikipedia
+  ---
+  Params
+  @name Name for database file
+  sample: php merge.php name=Merged_last10.sqlite
+  
+  @strict Strictness for duplicate checking
+  'strict': Use Year + Month + values for M, L, C, KD, S, V
+  'half-strict': Use Year + Company (3 first chars) + values for M, L, C, KD, S, V
+  'loose': Use Year + Month + Company (3 first chars)
+  > sample: php merge.php strict=half-loose  
+  > default: strict
+  
+  @maxmerge Limits number to merge from Wikipedia
+  > sample: php merge.php maxmerge=50
+  > default: all
+  
+  @oldcheck Max entries to compare against
+  > sample: php merge.php oldcheck=1000
+  > default: 500
+  
+  Combined params, sample:
+  php merge.php name=MyDataBase.sqlite oldcheck=99999 maxmerge=100
+  
+  Order of params does not matter.";
+ 
+
+if( isset($argv) ){
+	$test = implode('__', $argv);
+	if( contains('automaton=true', $test) ){
+		$sub_text = explode('---', $sub_text)[0];
+		$sub_text = trim($sub_text);
+	}
+}
+ 
+$colors->large_header(basename(__FILE__), $sub_text);
+
+
+
 # setup stuff
 $data_dir = DATA_DIR;
 $polls_src = $data_dir . 'Polls.sqlite';
 $wiki_src = $data_dir . 'Wikipedia.sqlite';
-$dupeStrictness = 'strict'; // 'strict', 'half-strict' or 'loose'
-$maxMerge = false; // max wikipedia entries to merge with, false = all
-
-$dbName = 'Merged.sqlite';
-$dbNameNew = $dbName . '.new';
 $table = 'polls';
-$oldCheck = 500; // number of new-vs-old to check for if difference
 
+
+# options => default value
+# gets overwritten of params set
+$opts = [
+	'name' => 'Merged.sqlite',
+	'strict' => 'strict',
+	'maxmerge' => false,
+	'oldcheck' => 500
+];
 
 # months for conversion
 $months = ["Jan", "Feb", "Mar", "Apr", "Maj", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dec"];
 
 
-# check if argv set
+
+# check if argv set and set opts if
 if( isset($argv) ){
 	$params = $argv;
-	if( isset($params[1]) ){
-		$n = $params[1];
-		$n = explode('=', $n)[1];
-		$dbName = $n;
-		$dbNameNew = $dbName . '.new';
-	}
+	unset($params[0]); // remove first (filename)
 	
-	if( isset($params[2]) ){
-		$strict = $params[2];
-		$strict = explode('=', $strict)[1];
-		$dupeStrictness = $strict;
-		if( $strict == 'strict' || $strict == 'half-strict' || $strict == 'loose' ) {} else {
-			exit('strictness has wrong value');
+	$paramString = implode('__', $params);
+	
+	foreach( $opts as $key => $opt ){
+		if( contains($key, $paramString) ){
+			
+			$pa = explode('__', $paramString);
+			foreach($pa as $pk => $pv ){ $pa[$pk] = explode('=', $pv); }
+			
+			foreach( $pa as $k => $v ){
+				if( $key == $v[0] ){
+					$opts[$key] = $pa[$k][1];
+				}
+			}
 		}
 	}
 	
-	if( isset($params[3]) ){
-		$maxMerge = $params[3];
-		$maxMerge = explode('=', $maxMerge)[1];
+	
+	# set vars from opts
+	if( !$opts['maxmerge'] ) { $maxMerge = false; }
+	else { $maxMerge = $opts['maxmerge']; }
+	
+	$oldCheck = $opts['oldcheck'];
+	
+	$dbName = $opts['name'];
+	$dbNameNew = $dbName . '.new';
+	
+	$strict = $opts['strict'];
+	if( $strict == 'strict' || $strict == 'half-strict' || $strict == 'loose' ) {} else {
+		$colors->error('Strictness has wrong value');
+		exit;
 	}
+	
+	$dupeStrictness = $strict;
+	
 }
 
 
@@ -99,6 +159,7 @@ if( !$isCli ){
 	1 - GET DATA FROM databases
 */
 
+$colors->header("Fetching data from '$polls_src' and '$wiki_src'");
 
 $pollsDB = new PDO('sqlite:' . $polls_src) or die("Error @ db");
 $wikiDB = new PDO('sqlite:' . $wiki_src) or die("Error @ db");
@@ -130,6 +191,9 @@ if( $maxMerge ) $sql .= " LIMIT $maxMerge";
 
 $wikiData = $wikiDB->query($sql);
 $wikiData = $wikiData->fetchAll(PDO::FETCH_ASSOC);
+
+
+$colors->done();
 
 
 
@@ -181,6 +245,8 @@ function testData($num, $company, $curArray){
 /*
 	2 - Loop polls array and add data from $wikiData array
 */
+
+$colors->header("Merging data...");
 
 $pollsArr = [];
 
@@ -273,6 +339,9 @@ foreach( $wikiData as $i => $arr ){
 }
 
 
+$colors->done();
+
+
 
 
 /*
@@ -301,6 +370,8 @@ foreach( $wikiData as $i => $arr ){
 	This since the same company has 2x collectPeriodTo within
 	that same specific month.
 */
+
+$colors->header("Removing duplicates using strictness '$dupeStrictness'");
 
 # create key for comparison
 foreach( $pollsArr as $i => $arr ){
@@ -354,6 +425,10 @@ function array_key_unique($arr, $key) {
 
 $pollsArr = array_key_unique( $pollsArr, 'key' );
 
+$colors->done();
+
+
+$colors->header("Remove uneeded keys, fix null values, fix Year-month and sort array");
 
 # remove uneeded keys
 $rmKeys = [ 'key', 'Date' ];
@@ -402,12 +477,17 @@ $merged = $pollsArr;
 $pollsArr = null;
 
 
+$colors->done();
+
+
 
 
 
 /*
 	5 - Add to database
 */
+
+$colors->header("Writing to temporary database '$dbNameNew'");
 
 # specify fields for sort + write
 $fields = [
@@ -472,6 +552,9 @@ $db->commit();
 $db->exec("VACUUM");
 
 
+$colors->done();
+
+
 
 
 
@@ -482,6 +565,8 @@ $db->exec("VACUUM");
 	Reason for this is that we do not want to commit files if there is no new data...
 	Any change to any database is always considered 'changed'
 */
+
+$colors->header("Comparing $dbNameNew <> $dbName");
 
 
 if( $hasOld ){
@@ -510,18 +595,28 @@ if( $hasOld ){
 	
 	// no difference
 	if( !$hasDiff ){
-		$colors->row("Merge: No difference from previous, no new data added.\n");
+		$txt = "First $oldCheck entries does not differ, no new data added.";
+		echo $colors->out("$txt \n", 'yellow');
+		echo $colors->out("> TIP: Force new data by removing file '". DATA_DIR ."$dbName' \n");
 		unlink( DATA_DIR . $dbNameNew ); // remove the new database
+		echo $colors->out("Removed temporary '". DATA_DIR . "$dbNameNew' \n");
+		$colors->done();
 	}
 	else {
-		$colors->row("Merge: New data differs from previous, new data was written...\n");
+		echo $colors->out("New data differs from previous, new data was written.\n");
 		unlink( DATA_DIR . $dbName ); // remove primary
 		rename( DATA_DIR . $dbNameNew, DATA_DIR . $dbName ); // use new as primary
+		echo $colors->out("Replaced $dbName with $dbNameNew in '". DATA_DIR ."' \n");
+		$colors->done();
 	}
 	
 }
 // no old data, simply rename db file
 else {
-	$colors->row("Merge: Data was written.\n");
+	echo $colors->out("No old database, creating and writing. \n");
+	echo $colors->out("Data written to '". DATA_DIR ."$dbName' \n");
 	rename( DATA_DIR . $dbNameNew, DATA_DIR . $dbName );
+	$colors->done();
 }
+
+echo "\n";

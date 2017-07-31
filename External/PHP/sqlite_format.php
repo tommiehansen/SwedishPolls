@@ -11,9 +11,6 @@ require 'core/helpers.php';
 require 'core/class.cli.colors.php';
 $color = new Cli\Colors;
 
-# start timer
-$timer_start = timer_start();
-
 
 # valid arguments and defaults
 $opts = [
@@ -173,13 +170,6 @@ $color->done();
 # write to file
 $color->row("Writing to file '$file_out'");
 file_put_contents($file_out, $formatted);
+
 $color->done();
 echo "\n";
-
-
-$timer_end = timer_end($timer_start);
-
-echo "\n";
-echo $color->out("----------------------------------------", 'light_blue');
-$color->row("Completed in $timer_end");
-echo $color->out("----------------------------------------\n\n", 'light_blue');

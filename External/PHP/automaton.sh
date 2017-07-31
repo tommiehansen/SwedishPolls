@@ -46,6 +46,7 @@ php sqlite_format.php file=Merged_last10.sqlite format=json file_out=Merged_last
 git add -A && git commit -m "Automaton"
 git push
 
+
 # if cron/misc scheduler
 # run with: nohup ./automaton.sh &-  
 # to run in background

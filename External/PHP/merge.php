@@ -43,6 +43,10 @@ $table = 'polls';
 $oldCheck = 500; // number of new-vs-old to check for if difference
 
 
+# months for conversion
+$months = ["jan", "feb", "mar", "apr", "maj", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
+
+
 # check if argv set
 if( isset($argv) ){
 	$params = $argv;
@@ -355,6 +359,14 @@ foreach( $pollsArr as $i => $arr ){
 	foreach( $rmKeys as $key ){
 		unset($pollsArr[$i][$key]);
 	}
+}
+
+
+# loop through everything again and add proper 'null' values
+# and convert ie 2017-07 >> 2017-jul
+
+foreach( $pollsArr as $i => $arr ){
+	
 }
 
 

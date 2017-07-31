@@ -118,9 +118,6 @@ $sql = "
 	ORDER BY $order
 ";
 
-$color->done();
-
-$color->row("Fetching data...");
 
 $db->beginTransaction();
 	$data = $db->query($sql);

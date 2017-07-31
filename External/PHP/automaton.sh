@@ -17,4 +17,4 @@ php sqlite_format.php file=Merged.sqlite format=csv file_out=Merged.csv
 
 # create file with only X latest
 php merge.php name=Merged_last10.sqlite strict=half-strict maxmerge=10
-php sqlite_format.php file=Merged_last10.sqlite format=csv file_out=Merged.last10.csv
+php sqlite_format.php file=Merged_last10.sqlite format=csv file_out=Merged_last10.csv

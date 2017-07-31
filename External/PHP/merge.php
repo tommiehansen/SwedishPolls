@@ -44,7 +44,7 @@ $oldCheck = 500; // number of new-vs-old to check for if difference
 
 
 # months for conversion
-$months = ["jan", "feb", "mar", "apr", "maj", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
+$months = ["Jan", "Feb", "Mar", "Apr", "Maj", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dec"];
 
 
 # check if argv set
@@ -367,6 +367,20 @@ foreach( $pollsArr as $i => $arr ){
 
 foreach( $pollsArr as $i => $arr ){
 	
+	foreach( $arr as $k => $v ){
+		
+		if( $v == '' ) $arr[$k] = null;
+		if( $k == 'PublYearMonth' && $v != '' ){
+			$yearMonth = explode('-', $v);
+			$month = $yearMonth[1];
+			$month = $months[$month-1]; // zero-based index
+			$arr[$k] = $yearMonth[0] . '-' . $month;
+		}
+		
+	}
+	
+	# add back
+	$pollsArr[$i] = $arr;
 }
 
 

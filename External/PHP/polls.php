@@ -10,6 +10,8 @@
 require 'core/config.php'; // $config object
 require 'core/helpers.php';
 require 'core/class.common.php';
+require 'core/class.cli.colors.php';
+$colors = new Cli\Colors;
 
 
 # setup
@@ -217,11 +219,11 @@ if( $hasOld ){
 	
 	// no difference
 	if( !$hasDiff ){
-		echo "Polls: No difference from previous, no new data added.\n";
+		$colors->row("Polls: No difference from previous, no new data added.\n");
 		unlink( DATA_DIR . $dbNameNew ); // remove the new database
 	}
 	else {
-		echo "Polls: New data differs from previous, new data was written...\n";
+		$colors->row("Polls: New data differs from previous, new data was written...\n");
 		unlink( DATA_DIR . $dbName ); // remove primary
 		rename( DATA_DIR . $dbNameNew, DATA_DIR . $dbName ); // use new as primary
 	}
@@ -229,6 +231,6 @@ if( $hasOld ){
 }
 // no old data, simply rename db file
 else {
-	echo "Polls: Data was written.\n";
+	$colors->row("Polls: Data was written.");
 	rename( DATA_DIR . $dbNameNew, DATA_DIR . $dbName );
 }

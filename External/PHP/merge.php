@@ -24,7 +24,8 @@
 require 'core/config.php'; // $config object
 require 'core/helpers.php';
 require 'core/class.common.php';
-
+require 'core/class.cli.colors.php';
+$colors = new Cli\Colors;
 $common = new Polls\Common;
 
 
@@ -474,11 +475,11 @@ if( $hasOld ){
 	
 	// no difference
 	if( !$hasDiff ){
-		echo "Merge: No difference from previous, no new data added.\n";
+		$colors->row("Merge: No difference from previous, no new data added.\n");
 		unlink( DATA_DIR . $dbNameNew ); // remove the new database
 	}
 	else {
-		echo "Merge: New data differs from previous, new data was written...\n";
+		$colors->row("Merge: New data differs from previous, new data was written...\n");
 		unlink( DATA_DIR . $dbName ); // remove primary
 		rename( DATA_DIR . $dbNameNew, DATA_DIR . $dbName ); // use new as primary
 	}
@@ -486,6 +487,6 @@ if( $hasOld ){
 }
 // no old data, simply rename db file
 else {
-	echo "Merge: Data was written.\n";
+	$colors->row("Merge: Data was written.\n");
 	rename( DATA_DIR . $dbNameNew, DATA_DIR . $dbName );
 }

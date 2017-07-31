@@ -138,7 +138,6 @@ $count > 0 ? $colors->row("Odd rows and +/- $numClose rows (if exist)" ) : '';
 $count > 0 ? sqlTable($new) : '';
 
 
-
 # find rows where next row has same company name
 # and has same collectPeriod
 $same = [];

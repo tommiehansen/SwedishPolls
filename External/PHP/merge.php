@@ -2,12 +2,23 @@
 /**
  *  MERGE Polls <> Wikipedia
  *  Merge data from Polls.csv <> Wikipedia data
- *  1. XXX
- *  2. XXX
- *  3. XXX
- *  4. XXX
+ *  1. Get data from databases
+ *  2. Loop data from Polls.csv and add data from Wikipedia
+ *  3. Loop Wikipedia array, add missing fields from Polls.csv
+ *  4. Remove duplicates for the now merged array
+ *  5. Add to database
+ *  6. Check if there was new data, if -- write
  *  
- *  TODO: Add generic output() that differs from CLI / HTML or something ..
+ *  Strictness
+ *  'strict': Use collectPeriodTo (Year + Month) + values for M, L, C, KD, S, V
+ *  'half-strict': Use collectPeriodTo (Year) + Company (3 first chars) + values for M, L, C, KD, S, V
+ *  'loose': Use collectPeriodTo (Year + Month) + Company (3 first chars)
+ *  
+ *  TODO: Add logic for argument 'maxMerge' that should limit number of data points from Wikipedia to merge
+ *  
+ *  Arguments
+ *  strict ie strict=half-loose (sets half-loose dupe check)
+ *  maxmerge ie maxmerge=50	 (limits to max merge of 50 latest from Wikipedia)
  */
  
 require 'core/config.php'; // $config object
@@ -21,22 +32,35 @@ $common = new Polls\Common;
 $data_dir = DATA_DIR;
 $polls_src = $data_dir . 'Polls.sqlite';
 $wiki_src = $data_dir . 'Wikipedia.sqlite';
-$dupeStrictness = 'strict'; // 'strict' or 'loose'
+$dupeStrictness = 'strict'; // 'strict', 'half-strict' or 'loose'
+$maxMerge = false; // max wikipedia entries to merge with, false = all
 
-$dbName = 'Polls_Wikipedia.merged.sqlite';
+$dbName = 'Merged.sqlite';
 $dbNameNew = $dbName . '.new';
 $table = 'polls';
-$oldCheck = 50; // number of new-vs-old to check for if difference
+$oldCheck = 500; // number of new-vs-old to check for if difference
+
+
+# check if argv set
+if( isset($argv) ){
+	$params = $argv;
+	if( isset($params[1]) ){
+		$strict = $params[1];
+		$strict = explode('=', $strict)[1];
+		$dupeStrictness = $strict;
+		if( $strict == 'strict' || $strict == 'half-strict' || $strict == 'loose' ) {} else {
+			exit('strictness has wrong value');
+		}
+	}
+	if( isset($params[2]) ){
+		$maxMerge = $params[2];
+		$maxMerge = explode('=', $maxMerge)[1];
+	}
+}
 
 
 # check if old db exists
 file_exists(DATA_DIR . $dbName) ? $hasOld = true : $hasOld = false;
-
-
-# test values
-$limit = -1; // -1 = all data
-#$limit = 30;
-$company = ''; // val or blank '' (meaning all companies)
 
 
 # check if terminal
@@ -57,36 +81,39 @@ if( !$isCli ){
 
 
 
+/*
+	1 - GET DATA FROM databases
+*/
+
 
 $pollsDB = new PDO('sqlite:' . $polls_src) or die("Error @ db");
 $wikiDB = new PDO('sqlite:' . $wiki_src) or die("Error @ db");
 
-$company ? $companySQL = "WHERE a.Company = '$company'" : $companySQL = '';
 
 # compare with pollsData
+$order = $config->order;
 $sql = "		
 	SELECT * from polls a
-	$companySQL
-	ORDER BY a.collectPeriodTo DESC, a.Company DESC
-	LIMIT $limit
+	ORDER BY $order
 ";
 $pollsData = $pollsDB->query($sql);
 $pollsData = $pollsData->fetchAll(PDO::FETCH_ASSOC);
 
 
 
-echo '<h3>Polls DB</h3>';
+#echo '<h3>Polls DB</h3>';
 #sqlTable($pollsData);
-prp( count($pollsData) . ' rows<hr>');
+#prp( count($pollsData) . ' rows<hr>');
 
 
 # compare with wikidata
 $sql = "		
 	SELECT * from polls a
-	$companySQL
-	ORDER BY a.collectPeriodTo DESC, a.Company DESC
-	LIMIT $limit
+	ORDER BY $order
 ";
+
+if( $maxMerge ) $sql .= " LIMIT $maxMerge";
+
 $wikiData = $wikiDB->query($sql);
 $wikiData = $wikiData->fetchAll(PDO::FETCH_ASSOC);
 
@@ -129,16 +156,16 @@ function testData($num, $company, $curArray){
 
 
 
-echo '<h3>Wiki DB</h3>';
+#echo '<h3>Wiki DB</h3>';
 #sqlTable($wikiData);
-prp( count($wikiData) . ' rows<hr>');
+#prp( count($wikiData) . ' rows<hr>');
 
 
 
 
 
 /*
-	1 - Loop polls array and add data from $wikiData array
+	2 - Loop polls array and add data from $wikiData array
 */
 
 $pollsArr = [];
@@ -181,11 +208,15 @@ foreach( $pollsData as $i => $arr ){
 	
 }
 
+$pollsData = null; // clear
+
 
 
 
 /*
-	2 - loop wiki array, add fields if  missing
+	3 - Loop Wikipedia array
+	- Remove keys that already exists in Polls.csv
+	- Add missing data that exists in Wikipedia data
 */
 
 
@@ -231,12 +262,12 @@ foreach( $wikiData as $i => $arr ){
 
 
 /*
-	3 -
-	REMOVE DUPLICATES
+	4 - REMOVE DUPLICATES
 	
 	Strict / Loose
-	'Strict' = Use Year + Month + values for M, L, C, KD, S, V
-	'Loose' = Use Year + Month + Company (3 first letters)
+	'strict' = Use Year + Month + values for M, L, C, KD, S, V
+	'half-strict' = Use Year + Company (3 first chars) + values for M, L, C, KD, S, V
+	'loose' = Use Year + Month + Company (3 first letters)
 	
 	NOTE:
 	We're using Year + Month due to the fact that
@@ -275,6 +306,11 @@ foreach( $pollsArr as $i => $arr ){
 			$key .= $arr['M'] . $arr['S']; // ..so add values for M and S
 		}
 		
+	}
+	if( $dupeStrictness === 'half-strict' ) {
+		$key = substr( $arr['collectPeriodTo'], 0, 4 );
+		$key .= substr( strtoupper($arr['Company']), 0, 3 );
+		$key .= $arr['M'] . $arr['L'] . $arr['C'] . $arr['KD'] . $arr['S'] . $arr['V'];
 	}
 	else {
 		$key .= $arr['M'] . $arr['L'] . $arr['C'] . $arr['KD'] . $arr['S'] . $arr['V'];
@@ -322,9 +358,9 @@ usort($pollsArr, function($a, $b) {
     return $b - $a; // sort DESC
 });
 
-echo '<h3>Merged</h3>';
+#echo '<h3>Merged</h3>';
 #sqlTable( $pollsArr );
-prp( count($pollsArr) . ' rows');
+#prp( count($pollsArr) . ' rows');
 
 $merged = $pollsArr;
 $pollsArr = null;
@@ -333,18 +369,8 @@ $pollsArr = null;
 
 
 
-
-
-
-
-
-
-
-
-
-
 /*
-	4 - Add to database
+	5 - Add to database
 */
 
 # specify fields for sort + write
@@ -416,8 +442,7 @@ $db->exec("VACUUM");
 
 
 /*
-	5 -
-	CHECK IF THERE WAS NEW DATA
+	6 - CHECK IF THERE WAS NEW DATA
 	Reason for this is that we do not want to commit files if there is no new data...
 	Any change to any database is always considered 'changed'
 */
@@ -449,11 +474,11 @@ if( $hasOld ){
 	
 	// no difference
 	if( !$hasDiff ){
-		echo "No difference from previous, no new data added.\n";
+		echo "Merge: No difference from previous, no new data added.\n";
 		unlink( DATA_DIR . $dbNameNew ); // remove the new database
 	}
 	else {
-		echo "New data differs from previous, new data was written...\n";
+		echo "Merge: New data differs from previous, new data was written...\n";
 		unlink( DATA_DIR . $dbName ); // remove primary
 		rename( DATA_DIR . $dbNameNew, DATA_DIR . $dbName ); // use new as primary
 	}
@@ -461,6 +486,6 @@ if( $hasOld ){
 }
 // no old data, simply rename db file
 else {
-	echo "Data was written.\n";
+	echo "Merge: Data was written.\n";
 	rename( DATA_DIR . $dbNameNew, DATA_DIR . $dbName );
 }

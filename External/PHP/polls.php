@@ -17,7 +17,7 @@ $db = 'Polls.sqlite';
 $dbName = $db;
 $dbNameNew = $dbName . '.new';
 $table = 'polls';
-$oldCheck = 50; // number of new-vs-old to check for if difference
+$oldCheck = 500; // number of new-vs-old to check for if difference
 
 
 # init common
@@ -217,11 +217,11 @@ if( $hasOld ){
 	
 	// no difference
 	if( !$hasDiff ){
-		echo "No difference from previous, no new data added.\n";
+		echo "Polls: No difference from previous, no new data added.\n";
 		unlink( DATA_DIR . $dbNameNew ); // remove the new database
 	}
 	else {
-		echo "New data differs from previous, new data was written...\n";
+		echo "Polls: New data differs from previous, new data was written...\n";
 		unlink( DATA_DIR . $dbName ); // remove primary
 		rename( DATA_DIR . $dbNameNew, DATA_DIR . $dbName ); // use new as primary
 	}
@@ -229,6 +229,6 @@ if( $hasOld ){
 }
 // no old data, simply rename db file
 else {
-	echo "Data was written.\n";
+	echo "Polls: Data was written.\n";
 	rename( DATA_DIR . $dbNameNew, DATA_DIR . $dbName );
 }

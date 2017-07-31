@@ -10,14 +10,16 @@
 	}
 	
 	// array to CSV
-	function arrCSV( $arr ){
+	function arrCSV( $arr, $addNA = true ){
 		
 		$out = '';
 			foreach($arr as $key => $a) {
 				
 				// add 'NA' values
-				foreach($a as $k => $v ){
-					if( $v == '' ){ $a[$k] = 'NA'; }
+				if( $addNA ){
+					foreach($a as $k => $v ){
+						if( $v == '' ){ $a[$k] = 'NA'; }
+					}
 				}
 				
 				$out .= implode(",", $a) . PHP_EOL;
@@ -25,6 +27,38 @@
 		return $out;
 		
 	}
+	
+	// array to TSV
+	function arrTSV( $arr, $addNA = true ){
+		
+		$out = '';
+			foreach($arr as $key => $a) {
+				
+				// add 'NA' values
+				if( $addNA ){
+					foreach($a as $k => $v ){
+						if( $v == '' ){ $a[$k] = 'NA'; }
+					}
+				}
+				
+				$out .= implode("\t", $a) . PHP_EOL;
+			}
+		return $out;
+		
+	}
+	
+	
+	// perf-measure
+	function timer_start(){
+		return microtime(true);
+	}
+	
+	function timer_end($start){
+		$end = microtime(true)-$start;
+		$end = round($end*1000)/1000;
+		return $end . 's';
+	}
+	
 	
 	// isCli
 	function isCli(){
@@ -34,8 +68,16 @@
 	
 	// pre
 	function pre( $str ){
-		echo $str . "\n";
-	} 
+		print_r($str);
+		echo "\n";
+	}
+	
+	// contains
+	function contains($needle, $haystack) {
+		return strpos($haystack, $needle) !== false;
+	}
+	
+	
 	
 	/*
 		Take WIKI-date and turn it into a bounch of arrays with from/to etc

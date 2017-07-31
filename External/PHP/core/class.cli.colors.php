@@ -94,6 +94,20 @@
 			echo "\n";
 			echo $this->out("$str\n", "$color");
 		}
+		
+		public function error($str, $color = ''){
+			$out = "\n";
+			$out .= $this->out("ERROR", 'white', 'red');
+			$out .= str_replace('  ','', $this->out(" $str\n", "$color"));
+			$out .= "\n";
+			echo $out;
+		}
+		
+		public function row($str, $color = 'white'){
+			$out = "\n";
+			$out .= $this->out("$str\n", "$color");
+			echo $out;
+		}
 
 		// output all colors to screen
 		public function testColors(){

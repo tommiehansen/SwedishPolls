@@ -56,6 +56,7 @@ if( isset($argv) ){
 		$dbName = $n;
 		$dbNameNew = $dbName . '.new';
 	}
+	
 	if( isset($params[2]) ){
 		$strict = $params[2];
 		$strict = explode('=', $strict)[1];
@@ -64,6 +65,7 @@ if( isset($argv) ){
 			exit('strictness has wrong value');
 		}
 	}
+	
 	if( isset($params[3]) ){
 		$maxMerge = $params[3];
 		$maxMerge = explode('=', $maxMerge)[1];
@@ -421,7 +423,7 @@ $fields = [
 	'MP' => 'NUMERIC',
 	'SD' => 'NUMERIC',
 	'FI' => 'NUMERIC',
-	'OTH' => 'NUMERIC', // from Wikipedia
+	#'OTH' => 'NUMERIC', // from Wikipedia, not needed -- see: https://github.com/MansMeg/SwedishPolls/issues/90
 	'Uncertain' => 'NUMERIC',
 	'n' => 'NUMERIC',
 	'PublDate' => 'TEXT',

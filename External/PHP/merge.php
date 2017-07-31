@@ -17,6 +17,7 @@
  *  TODO: Add logic for argument 'maxMerge' that should limit number of data points from Wikipedia to merge
  *  
  *  Arguments
+ *  name ie name=Merged.last20.sqlite
  *  strict ie strict=half-loose (sets half-loose dupe check)
  *  maxmerge ie maxmerge=50	 (limits to max merge of 50 latest from Wikipedia)
  */
@@ -46,15 +47,21 @@ $oldCheck = 500; // number of new-vs-old to check for if difference
 if( isset($argv) ){
 	$params = $argv;
 	if( isset($params[1]) ){
-		$strict = $params[1];
+		$n = $params[1];
+		$n = explode('=', $n)[1];
+		$dbName = $n;
+		$dbNameNew = $dbName . '.new';
+	}
+	if( isset($params[2]) ){
+		$strict = $params[2];
 		$strict = explode('=', $strict)[1];
 		$dupeStrictness = $strict;
 		if( $strict == 'strict' || $strict == 'half-strict' || $strict == 'loose' ) {} else {
 			exit('strictness has wrong value');
 		}
 	}
-	if( isset($params[2]) ){
-		$maxMerge = $params[2];
+	if( isset($params[3]) ){
+		$maxMerge = $params[3];
 		$maxMerge = explode('=', $maxMerge)[1];
 	}
 }

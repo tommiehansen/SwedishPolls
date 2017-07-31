@@ -1,6 +1,0 @@
-#!/bin/bash
-# automaton.sh - automate getting data
-# run with nohup ./automaton.sh &-    later to run in background
-# get core Wikipedia data and Polls.csv data
-php wikipedia.php
-php polls.php

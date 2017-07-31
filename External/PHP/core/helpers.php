@@ -139,8 +139,9 @@
 			</style>
 			";
 		}
-
-		$head = $res[0];
+	
+		isset( $res[0] ) ? $head = $res[0] : $head = $res[key($res)];
+		
 		echo "<table class='$class' data-sortable><thead><tr>";
 		foreach($head as $k=>$v){
 		    echo "<th>$k</th>";

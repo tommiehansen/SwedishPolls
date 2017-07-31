@@ -5,8 +5,12 @@
 		
 		private $foreground_colors = array();
 		private $background_colors = array();
+		public $isCli;
 
 		public function __construct() {
+			
+			// check cli
+			isset($GLOBALS['argv']) ? $this->isCli = true : $this->isCli = false;
 
 			// Setup shell colors
 			$textColors = [
@@ -57,6 +61,13 @@
 
 		// Returns colored string
 		public function out($string, $foreground_color = null, $background_color = null) {
+			
+			// If not cli, return <pre>-tags with some formatting
+			if( !$this->isCli ) {
+				$str =  "<pre>" . $string . "</pre>"; 
+				return $str;
+			}
+			
 			$colored_string = "";
 
 			// Check if given foreground color found

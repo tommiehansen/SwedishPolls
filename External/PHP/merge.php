@@ -14,8 +14,6 @@
  *  'half-strict': Use collectPeriodTo (Year) + Company (3 first chars) + values for M, L, C, KD, S, V
  *  'loose': Use collectPeriodTo (Year + Month) + Company (3 first chars)
  *  
- *  TODO: Add logic for argument 'maxMerge' that should limit number of data points from Wikipedia to merge
- *  
  *  Arguments
  *  name ie name=Merged.last20.sqlite
  *  strict ie strict=half-loose (sets half-loose dupe check)
@@ -42,7 +40,7 @@ $sub_text = "Merge data from Polls.csv <> Wikipedia
   'half-strict': Use Year + Company (3 first chars) + values for M, L, C, KD, S, V
   'loose': Use Year + Month + Company (3 first chars)
   > sample: php merge.php strict=half-loose  
-  > default: strict
+  > default: half-strict
   
   @maxmerge Limits number to merge from Wikipedia
   > sample: php merge.php maxmerge=50
@@ -81,13 +79,13 @@ $table = 'polls';
 # gets overwritten of params set
 $opts = [
 	'name' => 'Merged.sqlite',
-	'strict' => 'strict',
+	'strict' => 'half-strict',
 	'maxmerge' => false,
 	'oldcheck' => 500
 ];
 
 # months for conversion
-$months = ["Jan", "Feb", "Mar", "Apr", "Maj", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dec"];
+$months = ["jan", "feb", "mar", "apr", "maj", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
 
 
 
@@ -587,8 +585,10 @@ if( $hasOld ){
 	$hasDiff = false;
 	foreach( $newData as $key => $val ){
 		
-		if( $val['id'] != $oldData[$key]['id'] ){
-			$hasDiff = true;
+		if( isset($oldData[$key]) ){
+			if( $val['id'] != $oldData[$key]['id'] ){
+				$hasDiff = true;
+			}
 		}
 		
 	}

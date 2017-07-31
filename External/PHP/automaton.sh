@@ -42,10 +42,8 @@ php sqlite_format.php file=Merged_last10.sqlite format=csv file_out=Merged_last1
 php sqlite_format.php file=Merged_last10.sqlite format=json file_out=Merged_last10.json
 
 
-# Commit to Github
-git add -A && git commit -m "Automaton - Automatic Push"
-
-# Push
+# Commit to Github and Push
+git add -A && git commit -m "Automaton"
 git push
 
 # if cron/misc scheduler

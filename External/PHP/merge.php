@@ -7,7 +7,6 @@
  *  3. XXX
  *  4. XXX
  *  
- *  TODO: Clean this up, add to merge.php or invent a bette name ie Polls_Wikipedia.sqlite etc
  *  TODO: Add generic output() that differs from CLI / HTML or something ..
  */
  
@@ -24,7 +23,7 @@ $polls_src = $data_dir . 'Polls.sqlite';
 $wiki_src = $data_dir . 'Wikipedia.sqlite';
 $dupeStrictness = 'strict'; // 'strict' or 'loose'
 
-$dbName = 'merge.test.sqlite';
+$dbName = 'Polls_Wikipedia.merged.sqlite';
 $dbNameNew = $dbName . '.new';
 $table = 'polls';
 $oldCheck = 50; // number of new-vs-old to check for if difference
@@ -77,7 +76,7 @@ $pollsData = $pollsData->fetchAll(PDO::FETCH_ASSOC);
 
 
 echo '<h3>Polls DB</h3>';
-sqlTable($pollsData);
+#sqlTable($pollsData);
 prp( count($pollsData) . ' rows<hr>');
 
 
@@ -131,7 +130,7 @@ function testData($num, $company, $curArray){
 
 
 echo '<h3>Wiki DB</h3>';
-sqlTable($wikiData);
+#sqlTable($wikiData);
 prp( count($wikiData) . ' rows<hr>');
 
 
@@ -324,7 +323,7 @@ usort($pollsArr, function($a, $b) {
 });
 
 echo '<h3>Merged</h3>';
-sqlTable( $pollsArr );
+#sqlTable( $pollsArr );
 prp( count($pollsArr) . ' rows');
 
 $merged = $pollsArr;

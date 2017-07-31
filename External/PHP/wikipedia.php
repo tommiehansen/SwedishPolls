@@ -1,6 +1,6 @@
 <?php
 /**
- *  Get data from Wikipedia + add to database
+ *  Get data from Wikipedia (2010-2018) + add to database
  *  1. Get data using Wikipedia API
  *  2. Parse and apply fixes
  *  3. Sort
@@ -74,11 +74,14 @@ if( !$isCli ){
 
 # get JSON
 $url_base = "https://en.wikipedia.org/w/api.php?action=parse&format=json&page=";
-$page = "Opinion_polling_for_the_Swedish_general_election,_2018&section=3";
-$file = $config->cache_dir . 'wikipedia.cache';
+$page = "Opinion_polling_for_the_Swedish_general_election,_2014&section=2";
+$file = $config->cache_dir . 'wikipedia.2010-2014.cache';
 $data = curl_cache($url_base.$page, $file, $config->cache );
 
-
+# get JSON #2
+$page = "Opinion_polling_for_the_Swedish_general_election,_2018&section=3";
+$file = $config->cache_dir . 'wikipedia.2014-2018.cache';
+$data2 = curl_cache($url_base.$page, $file, $config->cache );
 
 
 /*
@@ -92,6 +95,16 @@ $data = $data['parse']['text']['*'];
 $data = strip_tags($data, '<table><thead><tfoot><tbody><td><th><tr>');
 $data = utf8_decode($data);
 
+$data2 = json_decode($data2, true);
+$data2 = $data2['parse']['text']['*'];
+$data2 = strip_tags($data2, '<table><thead><tfoot><tbody><td><th><tr>');
+$data2 = utf8_decode($data2);
+
+// combine $data and $data2 (we'll just target all <tr> later anyway)
+$data = $data2 . $data;
+$data2 = null;
+
+
 // load DOM
 $dom = new \DOMDocument();
 $dom->loadHTML($data);
@@ -100,14 +113,36 @@ $rows = $dom->getElementsByTagName('tr');
 // loop rows
 $arr = [];
 $len = $rows->length;
+$curYear = 2014; // initial 'current year' for rows without year definition (2010-2014)
+
 for ($i = 0; $i < $len; $i++) {
 	
 	$cols = $rows->item($i)->getElementsbyTagName("td");
 	$jlen = $cols->length;
 	
+	
+	// 2014-2018 data has year, 2010-2014 doesn't. Need check.
+	$hasYear = false;
+	if( isset($cols[0]) ){
+		$year = explode(' ', $cols[0]->nodeValue);
+		$year = $year[count($year)-1];
+		
+		if( is_numeric($year) && strlen($year) == 4 ){
+			$hasYear = true;
+		}
+	}
+	
+	// check for year td (only one value)
+	if( isset($cols[0]) && strlen($cols[0]->nodeValue) == 4 ){
+		$curYear = $cols[0]->nodeValue-1; // Years are bottom > top but we loop from top > bottom so need to count downwards
+	}
+	
 	// checks
-	if( !isset($cols[1]) || !isset($cols[0])) continue; // skip bad data
-	if (strpos($cols[1]->nodeValue, 'General') !== false) continue; // skip 'General Election'
+	if(! isset($cols[1]) || !isset($cols[0]) ) continue; // skip bad data
+	if( strpos($cols[1]->nodeValue, 'Election') !== false) continue; // skip 'General Election' and 'EP Election'
+	if( strpos($cols[1]->nodeValue, 'APO') !== false) continue; // skip odd 'APO' company
+	if( strpos($cols[0]->nodeValue, '14 Sep' ) !== false) continue; // skip Exit Polls
+	
 	
 	// loop columns
 	for ($j = 0; $j < $jlen; $j++) {
@@ -121,7 +156,9 @@ for ($i = 0; $i < $len; $i++) {
 		$val == '' ? $val = null : '';
 		
 		# get all values
-		$j == 0 ? $arr[$i]['Date'] = $val : '';
+		if( $j == 0 && !$hasYear ) { $arr[$i]['Date'] = $val . ' ' . $curYear; }
+		else if ( $j == 0 && $hasYear )  { $arr[$i]['Date'] = $val; }
+		
 		$j == 1 ? $arr[$i]['Company'] = $val : '';
 		$j == 2 ? $arr[$i]['S'] = $val : '';
 		$j == 3 ? $arr[$i]['M'] = $val : '';
@@ -138,6 +175,9 @@ for ($i = 0; $i < $len; $i++) {
 		# fix poor UTF-8 encoding causing '?'
 		# and normalize dates
 		if( $j == 0  ) {
+			
+			// add year
+			!$hasYear ? $val .= ' ' . $curYear : '';
 			
 			$val = str_replace('?','-', $val);
 			$arr[$i]['Date'] = $val;

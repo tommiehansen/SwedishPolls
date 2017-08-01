@@ -42,6 +42,9 @@ php sqlite_format.php file=Merged_last10.sqlite format=csv file_out=Merged_last1
 php sqlite_format.php file=Merged_last10.sqlite format=json file_out=Merged_last10.json
 
 
+# start ssh agent (if not started)
+eval $(ssh-agent -s)
+
 # Commit to Github and Push
 git add -A && git commit -m "Automaton"
 git push

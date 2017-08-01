@@ -49,6 +49,8 @@ eval $(ssh-agent -s)
 git add -A && git commit -m "Automaton"
 git push
 
+
+
 # if cron/misc scheduler
 # run with: nohup ./automaton.sh &-  
 # to run in background

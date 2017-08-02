@@ -9,10 +9,10 @@ require 'core/config.php'; // $config object
 require 'core/helpers.php';
 require 'core/class.cli.colors.php';
 $colors = new Cli\Colors;
-$html = ""; # add all output to this
+$html = ""; # add all output to this and save later
 
 # output large header
-$colors->large_header(basename(__FILE__), "Checki database for things that seem odd");
+$colors->large_header(basename(__FILE__), "Check database for things that seem odd");
 
 # setup
 $table = 'polls';

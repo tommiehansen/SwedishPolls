@@ -9,7 +9,7 @@
 require 'core/config.php'; // $config object
 require 'core/helpers.php';
 require 'core/class.cli.colors.php';
-$color = new Cli\Colors;
+$colors = new Cli\Colors;
 
 
 # valid arguments and defaults
@@ -37,14 +37,14 @@ if( count($params) > 1 ){
 	$file = $params[1];
 	
 	if( !contains('file=', $file) ) {
-		$color->error('First argument must be file=');
+		$colors->error('First argument must be file=');
 		exit();
 	}
 	
 	$file = explode('=', $file)[1];
 	
 	if( explode('.', $file)[1] != 'sqlite' ) {
-		$color->error("File must be a sqlite database, you entered '$file'");
+		$colors->error("File must be a sqlite database, you entered '$file'");
 		exit();
 	}
 	
@@ -59,7 +59,7 @@ if( count($params) > 1 ){
 			$opts['format'] = $format;
 		}
 		else {
-			$color->error('Format must be csv, tsv or json, quitting...');
+			$colors->error('Format must be csv, tsv or json, quitting...');
 			exit();
 		}
 	}
@@ -81,6 +81,14 @@ if( count($params) > 1 ){
 $opts = (object) $opts;
 
 
+# output header
+$file = $opts->file;
+$format = $opts->format;
+$file_out = $opts->file_out;
+
+if( isset( $fileCustom ) ){ $file_out = DATA_DIR . $fileCustom; }
+$colors->large_header(basename(__FILE__), "$file >> $file_out");
+
 
 $file = $opts->file;
 $file = DATA_DIR . $file;
@@ -90,12 +98,12 @@ if( isset( $fileCustom ) ){
 }
 
 
-
 # check if the file exists
 if( !file_exists($file) ) {
-	$color->error("The file '$file' does not exist and thus cannot be used, quitting...");
+	$colors->error("The file '$file' does not exist and thus cannot be used, quitting...");
 	exit();
 }
+
 
 
 
@@ -105,10 +113,10 @@ if( !file_exists($file) ) {
 	And query
 */
 
-$color->row("Fetching database...");
+$colors->row("Fetching database...");
 
 # connect to database
-$db = new \PDO('sqlite:' . $file) OR $color->error("Could not connect to database '$file'");
+$db = new \PDO('sqlite:' . $file) OR $colors->error("Could not connect to database '$file'");
 $order = $config->order;
 $sql = "
 	SELECT * FROM Polls
@@ -121,7 +129,7 @@ $db->beginTransaction();
 	$data = $data->fetchAll(PDO::FETCH_ASSOC);
 $db->commit(); $db = null;
 
-$color->done();
+$colors->done();
 
 
 
@@ -130,7 +138,7 @@ $color->done();
 */
 
 $format = $opts->format;
-$color->row("Formatting to $format...");
+$colors->row("Formatting to $format...");
 
 # remove keys
 $rmKeys = ['id'];
@@ -164,12 +172,12 @@ switch( $format ){
 		$formatted = arrCSV($data);
 }
 
-$color->done();
+$colors->done();
 
 
 # write to file
-$color->row("Writing to file '$file_out'");
+$colors->row("Writing to file '$file_out'");
 file_put_contents($file_out, $formatted);
 
-$color->done();
+$colors->done();
 echo "\n";

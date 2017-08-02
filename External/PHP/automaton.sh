@@ -46,8 +46,8 @@ php sqlite_format.php file=Merged_last10.sqlite format=json file_out=Merged_last
 # eval $(ssh-agent -s)
 
 # Commit to Github and Push
-#git add -A && git commit -m "Automaton"
-#git push
+git add -A && git commit -m "Automaton"
+git push
 
 
 

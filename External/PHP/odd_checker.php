@@ -173,7 +173,7 @@ foreach( $nullData as $i => $arr ){
 $count = count($new);
 $header = "Odd rows and +/- $numClose rows (if exist)";
 
-echo $colors->out("- $header \n");
+#echo $colors->out("- $header \n");
 $html.= "<h3>$header</h3>";
 
 if( $count > 0 ){	
@@ -274,6 +274,6 @@ $file_src = $config->cache_dir . $file;
 
 file_put_contents($file_src, $html);
 
-$colors->row("Report with details saved to $file_src");
+$colors->row("Complete report with details saved to $file_src");
 echo "\n";
 

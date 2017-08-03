@@ -169,16 +169,20 @@ foreach( $nullData as $i => $arr ){
 	FIND SIMILAR ROWS ON COMPANY
 */
 
+$oldCount = $count;
 
-$count = count($new);
-$header = "Odd rows and +/- $numClose rows (if exist)";
+# don't add if there will be 0
+if( $oldCount > 0 ){
+	$count = count($new);
+	$header = "Odd rows and +/- $numClose rows (if exist)";
 
-#echo $colors->out("- $header \n");
-$html.= "<h3>$header</h3>";
+	#echo $colors->out("- $header \n");
+	$html.= "<h3>$header</h3>";
 
-if( $count > 0 ){	
-	$html .= _table( $new );
-	!$isCli ? sqlTable( $new ) : '';
+	if( $count > 0 ){	
+		$html .= _table( $new );
+		!$isCli ? sqlTable( $new ) : '';
+	}
 }
 
 

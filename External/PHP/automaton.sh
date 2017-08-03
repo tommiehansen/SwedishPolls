@@ -41,6 +41,11 @@ php merge.php name=Merged_last10.sqlite strict=half-strict maxmerge=10 automaton
 php sqlite_format.php file=Merged_last10.sqlite format=csv file_out=Merged_last10.csv
 php sqlite_format.php file=Merged_last10.sqlite format=json file_out=Merged_last10.json
 
+# create reports
+php odd_checker.php
+php odd_checker.php name=Merged_last10.sqlite
+php odd_checker.php name=Polls.sqlite
+
 
 # start ssh agent (if not started)
 # eval $(ssh-agent -s)

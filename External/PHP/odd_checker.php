@@ -174,7 +174,7 @@ $oldCount = $count;
 # don't add if there will be 0
 if( $oldCount > 0 ){
 	$count = count($new);
-	$header = "Odd rows and +/- $numClose rows (if exist)";
+	$header = "Odd rows and +/- $numClose rows (nearby rows for comparison if exist)";
 
 	#echo $colors->out("- $header \n");
 	$html.= "<h3>$header</h3>";

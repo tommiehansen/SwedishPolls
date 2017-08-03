@@ -205,7 +205,7 @@ foreach( $allData as $i => $arr ){
 }
 
 $count = count($same);
-$header = "$count count rows where next row is same company and collectPeriodTo is the same month";
+$header = "$count rows where next row is same company and collectPeriodTo is the same month";
 
 echo $colors->out("- $header \n");
 $html.= "<h3>$header</h3>";

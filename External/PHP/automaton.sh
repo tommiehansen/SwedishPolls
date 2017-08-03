@@ -21,7 +21,7 @@ cd $DIR
 # clear
 clear
 
-# get core Wikipedia data and Polls.csv data
+# get core Wikipedia and Polls.csv data
 php polls.php
 php wikipedia.php
 php sqlite_format.php file=Polls.sqlite

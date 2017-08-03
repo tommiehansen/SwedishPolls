@@ -61,7 +61,7 @@ if( !$isCli ){
 $url = 'https://raw.githubusercontent.com/MansMeg/SwedishPolls/master/Data/Polls.csv';
 $colors->header("Fetching '$url'");
 $file = $config->cache_dir . 'polls.cache';
-$data = curl_cache($url, $file, $config->cache); // get + cache
+$data = curl_cache($url, $file, $config->cache_medium); // get + cache
 
 
 # create array from CSV

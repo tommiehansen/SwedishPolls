@@ -98,13 +98,12 @@ if( isset( $fileCustom ) ){
 }
 
 
+
 # check if the file exists
 if( !file_exists($file) ) {
 	$colors->error("The file '$file' does not exist and thus cannot be used, quitting...");
 	exit();
 }
-
-
 
 
 

@@ -83,7 +83,7 @@ $url_base = "https://en.wikipedia.org/w/api.php?action=parse&format=json&page=";
 $page = "Opinion_polling_for_the_Swedish_general_election,_2014&section=2";
 $colors->header("Fetching '$page'");
 $file = $config->cache_dir . 'wikipedia.2010-2014.cache';
-$data = curl_cache($url_base.$page, $file, $config->cache );
+$data = curl_cache($url_base.$page, $file, $config->cache_long );
 $colors->done();
 
 # get JSON #2

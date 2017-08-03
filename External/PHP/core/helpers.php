@@ -126,10 +126,12 @@
 
 
 	# output table from query; requires PDO::FETCHASSOC from query result
-	function sqlTable($res, $class = 'tbl', $css = true ){
+	function sqlTable($res, $class = 'tbl', $css = true, $echo = true ){
+		
+		$html = "";
 		
 		if( $css ){
-			echo "
+			$html .= "
 			<style>
 			.$class { font-family: monospace; }
 			.$class td, .$class th { text-align: left; border: 1px solid #ddd; padding: 5px; }
@@ -142,21 +144,24 @@
 	
 		isset( $res[0] ) ? $head = $res[0] : $head = $res[key($res)];
 		
-		echo "<table class='$class' data-sortable><thead><tr>";
+		$html .= "<table class='$class' data-sortable><thead><tr>";
 		foreach($head as $k=>$v){
-		    echo "<th>$k</th>";
+		    $html .= "<th>$k</th>";
 		}
-		echo "</tr></thead><tbody>";
+		$html .= "</tr></thead><tbody>";
 
 		foreach( $res as $key => $val ){
-		    echo "<tr>";
+		    $html .= "<tr>";
 		    foreach($head as $i=>$h){
-		        echo "<td title='$i'>" . $val[$i] . "</td>";
+				$html .= "<td title='$i'>" . $val[$i] . "</td>";
 		    }
-		    echo "</tr>";
+		    $html .= "</tr>";
 		}
 
-		echo "</tbody></table>";
+		$html .= "</tbody></table>";
+		
+		if( $echo ){ echo $html; }
+		else { return $html; }
 
 	}
 

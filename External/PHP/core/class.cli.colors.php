@@ -42,7 +42,7 @@
 
 			$backgroundColors = [
 				'black'			=> '40',
-				'red'		 	=> '41',
+				'red'		 	=> '101',
 				'green'			=> '42',
 				'yellow'		=> '43',
 				'blue'			=> '44',
@@ -122,7 +122,7 @@
 		
 		public function error($str, $color = ''){
 			$out = "\n";
-			$out .= $this->out("ERROR", 'white', 'red');
+			$out .= $this->out(" ERROR ", 'white', 'red');
 			$out .= str_replace('  ','', $this->out(" $str\n", "$color"));
 			$out .= "\n";
 			echo $out;

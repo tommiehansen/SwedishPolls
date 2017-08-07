@@ -51,7 +51,7 @@ php odd_checker.php name=Polls.sqlite
 # eval $(ssh-agent -s)
 
 # Commit to Github and Push
-git add -A && git commit -m "Automaton"
+git add -A :/ && git commit -m "Automaton"
 git push
 
 

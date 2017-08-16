@@ -104,7 +104,7 @@ $sql = "
 $nullData = $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 
 $count = count($nullData);
-$header = "$count 'odd' rows that have NULL PublYearMonth";
+$header = "$count 'odd' rows that have NULL PublYearMonth <i>This means that either these rows doesn't exist in Polls.csv or they cannot be marked as duplicates for some reason</i>";
 
 echo $colors->out("- $header \n");
 $html.= "<h3>$header</h3>";
@@ -257,6 +257,7 @@ $prepend = "
 			h1 + p { margin-bottom: 2rem; }
 			h3 { color: white; font-weight: normal }
 			table + h3 { margin-top: 4rem; }
+			h3 i { font-size: 12px; display:block; }
 		</style>
 	</head>
 	<body>

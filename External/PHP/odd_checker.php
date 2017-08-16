@@ -104,10 +104,10 @@ $sql = "
 $nullData = $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 
 $count = count($nullData);
-$header = "$count 'odd' rows that have NULL PublYearMonth <i>This means that either these rows doesn't exist in Polls.csv or they cannot be marked as duplicate for some reason.</i>";
+$header = "$count 'odd' rows that have NULL PublYearMonth";
 
 echo $colors->out("- $header \n");
-$html.= "<h3>$header</h3>";
+$html.= "<h3>$header <i>This means that either these rows doesn't exist in Polls.csv or they cannot be marked as duplicate for some reason.</i></h3>";
 
 if( $count > 0 ){	
 	$html .= _table( $nullData );
@@ -174,10 +174,10 @@ $oldCount = $count;
 # don't add if there will be 0
 if( $oldCount > 0 ){
 	$count = count($new);
-	$header = "Odd rows and +/- $numClose rows <i>Nearby rows for comparison if exist. Basically this is to compare nearby rows from the 'odd rows' in the previous table.</i>";
+	$header = "Odd rows and +/- $numClose rows";
 
 	#echo $colors->out("- $header \n");
-	$html.= "<h3>$header</h3>";
+	$html.= "<h3>$header <i>Nearby rows for comparison if exist. Basically this is to compare nearby rows from the 'odd rows' in the previous table.</i></h3>";
 
 	if( $count > 0 ){	
 		$html .= _table( $new );
@@ -209,10 +209,10 @@ foreach( $allData as $i => $arr ){
 }
 
 $count = count($same);
-$header = "$count rows where next row is same company and collectPeriodTo is the same month <i>This is to check whether there are possible errors in either Wikipedia data or Polls.csv data. Data from Wikipedia always has NULL (none) PublYearMonth.</i> ";
+$header = "$count rows where next row is same company and collectPeriodTo is the same month";
 
 echo $colors->out("- $header \n");
-$html.= "<h3>$header</h3>";
+$html.= "<h3>$header <i>This is to check whether there are possible errors in either Wikipedia data or Polls.csv data. Data from Wikipedia always has NULL (none) PublYearMonth.</i></h3>";
 
 if( $count > 0 ){	
 	$html .= _table( $same );

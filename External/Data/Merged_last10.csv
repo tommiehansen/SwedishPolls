@@ -1,4 +1,5 @@
 PublYearMonth,Company,M,L,C,KD,S,V,MP,SD,FI,Uncertain,n,PublDate,collectPeriodFrom,collectPeriodTo,approxPeriod,house
+NA,Ipsos,17,6,11,3,29,8,5,19,2,NA,NA,NA,2017-08-10,2017-08-21,NA,Ipsos
 NA,Sifo,16.2,6.2,12.4,3.6,30,6.4,4.1,18.3,1.9,NA,NA,NA,2017-08-07,2017-08-17,NA,Sifo
 2017-aug,YouGov,16.1,4.6,11.5,2.9,25.4,8.2,4.3,23.6,2.2,NA,1171,2017-08-16,2017-08-11,2017-08-15,FALSE,YouGov
 2017-aug,Sentio,15.1,4.1,10.5,3.2,23.5,8.6,4.3,27.4,2.4,25,1000,2017-08-17,2017-08-11,2017-08-14,FALSE,Sentio
